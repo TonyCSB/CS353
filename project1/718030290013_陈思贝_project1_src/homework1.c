@@ -12,11 +12,13 @@
 
 MODULE_LICENSE("GPL");
 
+// Module 2
 static int paramInt;
 static char *paramStr;
 static int paramArr[3];
 static int pr_arr;
 
+// Module 2
 module_param(paramInt, int, 0644);
 module_param(paramStr, charp, 0);
 module_param_array(paramArr, int, &pr_arr, 0444);
@@ -94,7 +96,7 @@ static int __init hello_init(void) {
     proc_create("test", 0, NULL, &hello_proc_fops);
     printk(KERN_INFO "Test file created, see /proc/test\n");
 
-    // Module r
+    // Module 4
     dir = proc_mkdir("hello_dir", NULL);
     printk(KERN_INFO "Test directory created, see /proc/hello_dir/\n");
     proc_create("test", 0660, dir, &hello_fops);
