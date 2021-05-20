@@ -24,12 +24,54 @@ static void mtest_list_vma(void) {
         
         vma = vma->vm_next;
     }
+}
 
+static struct page *find_page(unsigned long addr) {
+    struct mm_struct *mm = current->mm;
+
+    pgd_t *pgd = pgd_offset(mm, addr);
+    pud_t *pud = NULL;
+    pmd_t *pmd = NULL;
+    pte_t *pte = NULL;
+    struct page *page = NULL;
+
+    if (pgd_none(*pgd) || pgd_bad(*pgd)) {
+        return NULL;
+    }
+    pud = pud_offset(pgd, addr);
+
+    if (pud_none(*pud) || pud_bad(*pud)) {
+        return NULL;
+    }
+    pmd = pmd_offset(pud, addr);
+
+    if (pmd_none(*pmd) || pmd_bad(*pmd)) {
+        return NULL;
+    }
+    pte = pte_offset_map(pmd, addr);
+
+    if (pte_none(*pte) || !pte_present(*pte)) {
+        return NULL;
+    }
+
+    page = pte_page(*pte);
+    if (!page) {
+        return NULL;
+    }
+    return page;
 }
 
 /* Find va->pa translation */
 static void mtest_find_page(unsigned long addr) {
-    // TODO: Convert virtual memory to physical memory address and output
+    struct page *page = find_page(addr);
+    unsigned long pma;
+
+    if (page == NULL) {
+        printk(KERN_INFO "Failed to find a translation for 0x%lx", addr);
+    } else {
+        pma = page_to_phys(page) | (addr & ~PAGE_MASK);
+        printk(KERN_INFO "vma 0x%lx -> pma 0x%lx\n", addr, pma);
+    }
 }
 
 /* Write val to the specified address */
@@ -39,7 +81,8 @@ static void mtest_write_val(unsigned long addr, unsigned long val) {
 
 static ssize_t mtest_proc_write(struct file *file, const char __user * buffer, size_t count, loff_t * data) {
     char *tmp = kzalloc((count+1), GFP_KERNEL);
-    // char tmp[128] = "";
+    unsigned long addr;
+
     if (copy_from_user(tmp, buffer, count)) {
         kfree(tmp);
         return -EFAULT;
@@ -50,6 +93,10 @@ static ssize_t mtest_proc_write(struct file *file, const char __user * buffer, s
         mtest_list_vma();
     } else if (!memcmp(tmp, "findpage", 8)) {
         printk(KERN_INFO "findpage inputed\n");
+        if (sscanf((tmp + 8), "%lx", &addr) == 1) {
+            printk(KERN_INFO "0x%lx\n", addr);
+            mtest_find_page(addr);
+        }
     } else if (!memcmp(tmp, "writeval", 8)) {
         printk(KERN_INFO "writeval inputed\n");
     }

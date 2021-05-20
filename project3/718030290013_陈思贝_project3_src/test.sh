@@ -4,7 +4,7 @@ make
 insmod mtest.ko
 echo listvma > /proc/mtest
 dmesg | tail -15
-rmmod mtest
+# rmmod mtest
 
 
 # echo findpage xxxxxxxxxxxxxxx > /proc/mtest
