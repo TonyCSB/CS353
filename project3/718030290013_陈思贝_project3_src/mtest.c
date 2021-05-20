@@ -94,7 +94,6 @@ static ssize_t mtest_proc_write(struct file *file, const char __user * buffer, s
     } else if (!memcmp(tmp, "findpage", 8)) {
         printk(KERN_INFO "findpage inputed\n");
         if (sscanf((tmp + 8), "%lx", &addr) == 1) {
-            printk(KERN_INFO "0x%lx\n", addr);
             mtest_find_page(addr);
         }
     } else if (!memcmp(tmp, "writeval", 8)) {
