@@ -4,6 +4,7 @@
 #include <linux/seq_file.h>
 #include <linux/uaccess.h>
 #include <linux/slab.h>
+#include <linux/mm.h>
 
 // #include <linux/sched.h>
 // #include <linux/mm.h>
@@ -11,7 +12,19 @@
 
 /* Print all vma of the current process */
 static void mtest_list_vma(void) {
-    // TODO: Get all vma and output
+    struct vm_area_struct *vma = current->mm->mmap;
+
+    while (vma) {
+        printk(KERN_INFO "VMA 0x%lx - 0x%lx\n", vma->vm_start, vma->vm_end);
+
+        printk(KERN_INFO "%c\n%c\n%c\n\n",
+            vma->vm_flags & VM_READ ? 'r' : '-',
+            vma->vm_flags & VM_WRITE ? 'w' : '-',
+            vma->vm_flags & VM_EXEC ? 'x' : '-');
+        
+        vma = vma->vm_next;
+    }
+
 }
 
 /* Find va->pa translation */
@@ -25,23 +38,27 @@ static void mtest_write_val(unsigned long addr, unsigned long val) {
 }
 
 static ssize_t mtest_proc_write(struct file *file, const char __user * buffer, size_t count, loff_t * data) {
-    char *tmp = kzalloc((count + 1), GFP_KERNEL);
+    char *tmp = kzalloc((count+1), GFP_KERNEL);
+    // char tmp[128] = "";
     if (copy_from_user(tmp, buffer, count)) {
         kfree(tmp);
         return -EFAULT;
     }
-    if (strcmp(tmp, "listvma")) {
-        printk("listvma");
-    } else if (strcmp(tmp, "findpage")) {
-        printk("findpage");
-    } else if (strcmp(tmp, "writeval")) {
-        printk("writeval");
+
+    if (!memcmp(tmp, "listvma", 7)) {
+        printk(KERN_INFO "listvma inputed\n");
+        mtest_list_vma();
+    } else if (!memcmp(tmp, "findpage", 8)) {
+        printk(KERN_INFO "findpage inputed\n");
+    } else if (!memcmp(tmp, "writeval", 8)) {
+        printk(KERN_INFO "writeval inputed\n");
     }
     return count;
 }
 
-static struct proc_ops proc_mtest_operations = {
-    .proc_write     = mtest_proc_write
+static struct file_operations proc_mtest_operations = {
+    .owner      = THIS_MODULE,
+    .write      = mtest_proc_write,
 };
 
 static struct proc_dir_entry *mtest_proc_entry;
@@ -53,7 +70,7 @@ static int __init mtest_init(void) {
 }
 
 static void __exit mtest_exit(void) {
-    // TODO: Delete proc file
+    remove_proc_entry("mtest", NULL);
 }
 
 module_init(mtest_init);
