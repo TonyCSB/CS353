@@ -6,10 +6,6 @@
 #include <linux/slab.h>
 #include <linux/mm.h>
 
-// #include <linux/sched.h>
-// #include <linux/mm.h>
-// #include <asm/io.h>
-
 /* Print all vma of the current process */
 static void mtest_list_vma(void) {
     struct vm_area_struct *vma = current->mm->mmap;
