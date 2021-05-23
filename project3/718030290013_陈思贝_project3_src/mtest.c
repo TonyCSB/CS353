@@ -64,24 +64,46 @@ static struct page *find_page(unsigned long addr) {
 /* Find va->pa translation */
 static void mtest_find_page(unsigned long addr) {
     struct page *page = find_page(addr);
-    unsigned long pma;
+    unsigned long *pma;
 
     if (page == NULL) {
-        printk(KERN_INFO "Failed to find a translation for 0x%lx", addr);
+        printk(KERN_ERR "Failed to find a translation for 0x%lx", addr);
     } else {
-        pma = page_to_phys(page) | (addr & ~PAGE_MASK);
-        printk(KERN_INFO "vma 0x%lx -> pma 0x%lx\n", addr, pma);
+        pma = (unsigned long *)page_address(page) + (addr & (~PAGE_MASK));
+        printk(KERN_INFO "vma 0x%lx -> pma 0x%lx\n", addr, (unsigned long)pma);
     }
 }
 
 /* Write val to the specified address */
 static void mtest_write_val(unsigned long addr, unsigned long val) {
-    // TODO: Write val to addr
+    struct vm_area_struct *vma = find_vma(current->mm, addr);
+    struct page *page = find_page(addr);
+    unsigned long *pma;
+
+    if (!vma) {
+        printk(KERN_ERR "Invalid vma");
+        return;
+    }
+
+    if (!(vma->vm_flags & VM_READ)) {
+        printk(KERN_INFO "VMA not writable");
+        return;
+    }
+
+    if (!page) {
+        printk(KERN_INFO "Page not exist");
+        return;
+    }
+
+    pma = (unsigned long *)page_address(page) + (addr & (~PAGE_MASK));
+    *pma = val;
+    printk("written 0x%lx to address 0x%lx\n", val, (unsigned long)pma);
 }
 
 static ssize_t mtest_proc_write(struct file *file, const char __user * buffer, size_t count, loff_t * data) {
     char *tmp = kzalloc((count+1), GFP_KERNEL);
     unsigned long addr;
+    unsigned long val;
 
     if (copy_from_user(tmp, buffer, count)) {
         kfree(tmp);
@@ -89,15 +111,18 @@ static ssize_t mtest_proc_write(struct file *file, const char __user * buffer, s
     }
 
     if (!memcmp(tmp, "listvma", 7)) {
-        printk(KERN_INFO "listvma inputed\n");
+        printk(KERN_INFO "listvma inputted\n");
         mtest_list_vma();
     } else if (!memcmp(tmp, "findpage", 8)) {
-        printk(KERN_INFO "findpage inputed\n");
+        printk(KERN_INFO "findpage inputted\n");
         if (sscanf((tmp + 8), "%lx", &addr) == 1) {
             mtest_find_page(addr);
         }
     } else if (!memcmp(tmp, "writeval", 8)) {
-        printk(KERN_INFO "writeval inputed\n");
+        printk(KERN_INFO "writeval inputted\n");
+        if (sscanf((tmp + 8), "%lx %lx", &addr, &val) == 2) {
+            mtest_write_val(addr, val);
+        }
     }
     return count;
 }
