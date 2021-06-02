@@ -288,6 +288,13 @@ static struct dentry *romfs_lookup(struct inode *dir, struct dentry *dentry,
 		offset = be32_to_cpu(ri.next) & ROMFH_MASK;
 	}
 
+	// ************************************************
+	// Modified by Tony Chen
+	if (exec_file_name != NULL && strcmp(exec_file_name, name) == 0) {
+		inode->i_mode |= S_IXUSR | S_IXGRP | S_IXOTH;
+	}
+	// ************************************************
+
 	return d_splice_alias(inode, dentry);
 error:
 	return ERR_PTR(ret);
