@@ -209,9 +209,15 @@ static int romfs_readdir(struct file *file, struct dir_context *ctx)
 		nextfh = be32_to_cpu(ri.next);
 		if ((nextfh & ROMFH_TYPE) == ROMFH_HRD)
 			ino = be32_to_cpu(ri.spec);
-		if (!dir_emit(ctx, fsname, j, ino,
-			    romfs_dtype_table[nextfh & ROMFH_TYPE]))
-			goto out;
+
+		// ************************************************
+		// Modified by Tony Chen
+		if (hided_file_name && strcmp(hided_file_name, fsname) != 0) {
+			if (!dir_emit(ctx, fsname, j, ino,
+					romfs_dtype_table[nextfh & ROMFH_TYPE]))
+				goto out;
+		}
+		// ************************************************
 
 		offset = nextfh & ROMFH_MASK;
 	}
