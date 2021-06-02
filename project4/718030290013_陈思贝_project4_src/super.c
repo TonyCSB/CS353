@@ -141,6 +141,19 @@ static int romfs_readpage(struct file *file, struct page *page)
 			fillsize = 0;
 			ret = -EIO;
 		}
+
+		// ************************************************
+		// Modified by Tony Chen
+		if (encrypted_file_name != NULL && strcmp(encrypted_file_name, file->f_path.dentry->d_iname) == 0) {
+			int i = 0;
+			for (; i < fillsize; i++) {
+				char *ptr = buf + i;
+				if (*ptr != 0) {
+					++*ptr;
+				}
+			}
+		}
+		// ************************************************
 	}
 
 	if (fillsize < PAGE_SIZE)
@@ -212,7 +225,7 @@ static int romfs_readdir(struct file *file, struct dir_context *ctx)
 
 		// ************************************************
 		// Modified by Tony Chen
-		if (hided_file_name && strcmp(hided_file_name, fsname) != 0) {
+		if (hided_file_name == NULL || strcmp(hided_file_name, fsname) != 0) {
 			if (!dir_emit(ctx, fsname, j, ino,
 					romfs_dtype_table[nextfh & ROMFH_TYPE]))
 				goto out;
