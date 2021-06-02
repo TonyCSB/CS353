@@ -148,7 +148,7 @@ static int romfs_readpage(struct file *file, struct page *page)
 			int i = 0;
 			for (; i < fillsize; i++) {
 				char *ptr = buf + i;
-				if (*ptr != 0) {
+				if (*ptr != 0 && *ptr != '\n') {
 					++*ptr;
 				}
 			}
