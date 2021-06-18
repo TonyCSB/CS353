@@ -183,6 +183,35 @@
         protect_memory();\end{lstlisting}
 
     \section{实验效果截图}
+
+    \begin{enumerate}
+        \item 第一次测试（图\ref{ref:demo1}）仅运行\texttt{dmesg}指令，新增1条输出（\texttt{dmesg}）。
+        \begin{figure}[h!]
+            \centering
+            \includegraphics[width=15cm,keepaspectratio]{images/demo1.png}
+            \caption{第一次测试}
+            \label{ref:demo1}
+        \end{figure}
+        \clearpage
+        \item 第二次测试（图\ref{ref:demo2}）运行\texttt{test.o}后通过\texttt{dmesg}查看，新增2条输出（\texttt{test.o} * 1 和 \texttt{dmesg} * 1）。
+        \begin{figure}[h!]
+            \centering
+            \includegraphics[width=15cm,keepaspectratio]{images/demo2.png}
+            \caption{第二次测试}
+            \label{ref:demo2}
+        \end{figure}
+        \item 第三次测试（图\ref{ref:demo3}）运行\texttt{bench.o}后通过\texttt{dmesg}查看，新增7条输出（\texttt{bench.o} * 6 和 \texttt{dmesg} * 1）。
+        \begin{figure}[h!]
+            \centering
+            \includegraphics[width=15cm,keepaspectratio]{images/demo3.png}
+            \caption{第三次测试}
+            \label{ref:demo3}
+        \end{figure}
+    \end{enumerate}
+
+    \section{实验心得}
+
+    通过本次的实验，对Linux中系统调用表有了更深的理解。对于该文件和其他辅助头文件的阅读，对系统调用操作有了更深的理解。通过对网上公开的代码示例的分析，成功完成了这次实验。\\
     
     \section{参考资料}
     
@@ -193,7 +222,5 @@
         \item \href{https://www.kernel.org/doc/html/latest/process/adding-syscalls.html}{Adding a New System Call}
     \end{enumerate}
     \vspace{.3cm}
-
-    \section{实验心得}
 
 \end{document}
