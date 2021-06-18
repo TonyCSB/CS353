@@ -10,21 +10,25 @@ typedef long(sys_clone) (unsigned long, unsigned long, int __user *, int __user 
 static sys_clone *old_clone;
 static long orig_cr0 = 0;
 
+// src: https://stackoverflow.com/questions/58512430/how-to-write-to-protected-pages-in-the-linux-kernel/60564037#60564037
+inline void mywrite_cr0(unsigned long cr0) {
+  asm volatile("mov %0,%%cr0" : "+r"(cr0));
+}
+
 // src: https://infosecwriteups.com/linux-kernel-module-rootkit-syscall-table-hijacking-8f1bc0bd099c
 #define unprotect_memory() \
 ({ \
 	orig_cr0 =  read_cr0();\
-	write_cr0(orig_cr0 & (~ 0x10000)); /* Set WP flag to 0 */ \
+	mywrite_cr0(orig_cr0 & (~ 0x10000)); /* Set WP flag to 0 */ \
 });
 #define protect_memory() \
 ({ \
-	write_cr0(orig_cr0); /* Set WP flag to 1 */ \
+	mywrite_cr0(orig_cr0); /* Set WP flag to 1 */ \
 });
 
-asmlinkage long sys_clone_hook(unsigned long x1, unsigned long x2, int __user *x3,
-                                 int __user *x4, unsigned long x5) {
+asmlinkage long sys_clone_hook(unsigned long x1, unsigned long x2, int __user *x3, int __user *x4, unsigned long x5) {
 	long ret_val = old_clone(x1, x2, x3, x4, x5);
-	printk(KERN_INFO "syscall (%s) hacked", current->comm);
+	printk(KERN_INFO "hello, I have hacked this syscall");
 	return ret_val;
 }
 
